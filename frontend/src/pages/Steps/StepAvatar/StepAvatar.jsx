@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Button from '../../../components/shared/Button/Button'
 import Card from '../../../components/shared/Card/Card'
 import styles from './StepAvatar.module.css'
@@ -8,11 +8,15 @@ import { activate } from '../../../http'
 import { setAuth } from '../../../store/authSlice'
 import Loader from '../../../components/shared/Loading/Loader'
 
+
 const StepAvatar = ({ onNext }) => {
     const dispatch = useDispatch();
     const { name, avatar } = useSelector((state) => state.activate)
     const [image, setImage] = useState('/images/user-pic.png')
     const [loading, setLoading] = useState(false)
+    const [mounted, setMounted] = useState(false);
+
+
     function captureImage(e) {
         const file = e.target.files[0];
         const reader = new FileReader();
@@ -31,7 +35,8 @@ const StepAvatar = ({ onNext }) => {
             const { data } = await activate({ name, avatar })
             console.log(data);
             if (data.auth)
-                dispatch(setAuth(data))
+                if (!mounted)
+                    dispatch(setAuth(data))
             // onNext()
         } catch (err) {
             console.log(err);
@@ -39,6 +44,16 @@ const StepAvatar = ({ onNext }) => {
             setLoading(false)
         }
     }
+
+    // clean-up function the memory...i-e. clear all the resources.
+    useEffect(() => {
+        return () => {
+            setMounted(true);
+        }
+    }, []);
+
+
+
     return (
         loading ? <Loader message="Activation in progress..." /> :
             <React.Fragment>
